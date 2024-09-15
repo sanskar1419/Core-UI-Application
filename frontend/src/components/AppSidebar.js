@@ -18,11 +18,12 @@ import { sygnet } from 'src/assets/brand/sygnet'
 
 // sidebar nav config
 import navigation from '../_nav'
+import { appActions, getSidebar, getSidebarUnfoldable } from '../redux/slices/app.slice'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
-  const unfoldable = useSelector((state) => state.sidebarUnfoldable)
-  const sidebarShow = useSelector((state) => state.sidebarShow)
+  const unfoldable = useSelector(getSidebarUnfoldable)
+  const sidebarShow = useSelector(getSidebar)
 
   return (
     <CSidebar
@@ -32,7 +33,7 @@ const AppSidebar = () => {
       unfoldable={unfoldable}
       visible={sidebarShow}
       onVisibleChange={(visible) => {
-        dispatch({ type: 'set', sidebarShow: visible })
+        dispatch(appActions.setSetSidebarShow(visible))
       }}
     >
       <CSidebarHeader className="border-bottom">
@@ -43,14 +44,12 @@ const AppSidebar = () => {
         <CCloseButton
           className="d-lg-none"
           dark
-          onClick={() => dispatch({ type: 'set', sidebarShow: false })}
+          onClick={() => dispatch(appActions.setSetSidebarShow(false))}
         />
       </CSidebarHeader>
       <AppSidebarNav items={navigation} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
-        <CSidebarToggler
-          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
-        />
+        <CSidebarToggler onClick={() => dispatch(appActions.setSidebarUnfoldable(!unfoldable))} />
       </CSidebarFooter>
     </CSidebar>
   )
