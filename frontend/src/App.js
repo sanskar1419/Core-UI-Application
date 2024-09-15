@@ -1,10 +1,11 @@
 import React, { Suspense, useEffect } from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { HashRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
 import { getTheme } from './redux/slices/app.slice'
+import { getCurrentUser } from './redux/slices/user.slice'
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -18,6 +19,7 @@ const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
 const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const storedTheme = useSelector(getTheme)
+  const currentUser = useSelector(getCurrentUser)
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.href.split('?')[1])
@@ -43,11 +45,25 @@ const App = () => {
         }
       >
         <Routes>
-          <Route exact path="/login" name="Login Page" element={<Login />} />
-          <Route exact path="/register" name="Register Page" element={<Register />} />
+          <Route
+            exact
+            path="/login"
+            name="Login Page"
+            element={currentUser ? <Navigate to="/" /> : <Login />}
+          />
+          <Route
+            exact
+            path="/register"
+            name="Register Page"
+            element={currentUser ? <Navigate to="/" /> : <Register />}
+          />
           <Route exact path="/404" name="Page 404" element={<Page404 />} />
           <Route exact path="/500" name="Page 500" element={<Page500 />} />
-          <Route path="*" name="Home" element={<DefaultLayout />} />
+          <Route
+            path="*"
+            name="Home"
+            element={currentUser ? <DefaultLayout /> : <Navigate to="/login" />}
+          />
         </Routes>
       </Suspense>
     </HashRouter>
