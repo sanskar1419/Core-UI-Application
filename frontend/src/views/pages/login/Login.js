@@ -18,6 +18,7 @@ import { cilLockLocked, cilUser, cilEnvelopeClosed } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux'
 import { getUserLoadingState, userActions } from '../../../redux/slices/user.slice'
 import { getError, getMessage, notificationAction } from '../../../redux/slices/notification.slice'
+import toast from 'react-hot-toast'
 
 const Login = () => {
   const [formData, setFormData] = useState({})
@@ -29,11 +30,11 @@ const Login = () => {
 
   useEffect(() => {
     if (message != null) {
-      console.log(message)
+      toast.success(message)
       dispatch(notificationAction.resetMessage())
     }
     if (error != null) {
-      console.log(error)
+      toast.error(error)
       dispatch(notificationAction.resetError())
     }
   }, [message, error])

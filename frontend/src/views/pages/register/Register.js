@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   CButton,
   CCard,
@@ -13,8 +13,26 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
+import { useDispatch, useSelector } from 'react-redux'
+import { getError, getMessage, notificationAction } from '../../../redux/slices/notification.slice'
+import toast from 'react-hot-toast'
 
 const Register = () => {
+  const dispatch = useDispatch()
+  const error = useSelector(getError)
+  const message = useSelector(getMessage)
+
+  useEffect(() => {
+    if (message != null) {
+      toast.success(message)
+      dispatch(notificationAction.resetMessage())
+    }
+    if (error != null) {
+      toast.error(error)
+      dispatch(notificationAction.resetError())
+    }
+  }, [message, error])
+
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
