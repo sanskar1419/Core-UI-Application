@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -14,9 +14,68 @@ import {
   CRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { cilLockLocked, cilUser, cilEnvelopeClosed } from '@coreui/icons'
+import { useDispatch, useSelector } from 'react-redux'
+import { getUserLoadingState, userActions } from '../../../redux/slices/user.slice'
+import { getError, getMessage, notificationAction } from '../../../redux/slices/notification.slice'
 
 const Login = () => {
+  const [formData, setFormData] = useState({})
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const error = useSelector(getError)
+  const message = useSelector(getMessage)
+  const userLoading = useSelector(getUserLoadingState)
+
+  useEffect(() => {
+    if (message != null) {
+      console.log(message)
+      dispatch(notificationAction.resetMessage())
+    }
+    if (error != null) {
+      console.log(error)
+      dispatch(notificationAction.resetError())
+    }
+  }, [message, error])
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    try {
+      e.preventDefault()
+      dispatch(userActions.signInStart())
+      const res = await fetch('/api/auth/sign-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json()
+      if (data.success === false) {
+        if (data.statusCode === 404) {
+          navigate('/404')
+          return
+        } else if (data.statusCode === 500) {
+          navigate('/500')
+          return
+        } else {
+          dispatch(userActions.signInError(data.message))
+          return
+        }
+      }
+      dispatch(userActions.signInSuccess(data))
+      localStorage.setItem('logged-in-user', JSON.stringify(data))
+      navigate('/')
+    } catch (error) {
+      dispatch(userActions.signInError(error.message))
+    }
+  }
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
@@ -25,28 +84,38 @@ const Login = () => {
             <CCardGroup>
               <CCard className="p-4">
                 <CCardBody>
-                  <CForm>
+                  <CForm onSubmit={handleSubmit}>
                     <h1>Login</h1>
                     <p className="text-body-secondary">Sign In to your account</p>
                     <CInputGroup className="mb-3">
                       <CInputGroupText>
-                        <CIcon icon={cilUser} />
+                        <CIcon icon={cilEnvelopeClosed} />
                       </CInputGroupText>
-                      <CFormInput placeholder="Username" autoComplete="username" />
+                      <CFormInput
+                        id="email"
+                        placeholder="Email"
+                        autoComplete="email"
+                        onChange={handleChange}
+                        type="email"
+                        required
+                      />
                     </CInputGroup>
                     <CInputGroup className="mb-4">
                       <CInputGroupText>
                         <CIcon icon={cilLockLocked} />
                       </CInputGroupText>
                       <CFormInput
+                        id="password"
                         type="password"
                         placeholder="Password"
                         autoComplete="current-password"
+                        onChange={handleChange}
+                        required
                       />
                     </CInputGroup>
                     <CRow>
                       <CCol xs={6}>
-                        <CButton color="primary" className="px-4">
+                        <CButton color="primary" className="px-4" type="submit">
                           Login
                         </CButton>
                       </CCol>
