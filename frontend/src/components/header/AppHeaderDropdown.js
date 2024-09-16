@@ -22,9 +22,38 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 
-import avatar8 from './../../assets/images/avatars/8.jpg'
+import avatar8 from './../../assets/images/avatars/3.jpg'
+import { useDispatch } from 'react-redux'
+import { userActions } from '../../redux/slices/user.slice'
 
 const AppHeaderDropdown = () => {
+  const dispatch = useDispatch()
+
+  const handleLogout = async () => {
+    try {
+      dispatch(userActions.logoutStart())
+      const res = await fetch('/api/auth/logout')
+      const data = await res.json()
+
+      if (data.success === false) {
+        if (data.statusCode === 404) {
+          navigate('/404')
+          return
+        } else if (data.statusCode === 500) {
+          navigate('/500')
+          return
+        } else {
+          dispatch(userActions.logoutError(data.message))
+          return
+        }
+      }
+      dispatch(userActions.logoutSuccess(data))
+      localStorage.removeItem('logged-in-user')
+    } catch (error) {
+      dispatch(userActions.logoutError(error.message))
+    }
+  }
+
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
@@ -84,7 +113,7 @@ const AppHeaderDropdown = () => {
           </CBadge>
         </CDropdownItem>
         <CDropdownDivider />
-        <CDropdownItem href="#">
+        <CDropdownItem onClick={handleLogout}>
           <CIcon icon={cilLockLocked} className="me-2" />
           Lock Account
         </CDropdownItem>
